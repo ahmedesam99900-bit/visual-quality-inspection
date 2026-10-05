@@ -1,31 +1,33 @@
 # Real-Time Visual Quality Inspection & Bottle Tracking System
 
-An end-to-end Computer Vision system for detecting, tracking, inspecting, and counting bottles in video streams.
+An end-to-end Computer Vision project for detecting, tracking, inspecting, and counting bottles in video streams.
 
-The project simulates an automated visual quality-control pipeline in which bottles moving through an inspection area are individually detected, assigned persistent identities, inspected for visual anomalies, and counted while real-time production statistics are generated.
+The project explores the development of an automated visual quality-inspection pipeline in which bottles moving through an inspection environment are detected, assigned persistent identities, inspected for visual anomalies, and counted while real-time production statistics are generated.
 
-> **Project Status:** 🚧 Currently under active development.
+> **Project Status:** 🚧 Under active development
 
 ---
 
 ## 🎯 Project Objective
 
-Manual visual inspection can become repetitive, inconsistent, and difficult to scale in production environments.
+Visual quality inspection is an important stage in many manufacturing and production systems. Manual inspection can become repetitive, difficult to scale, and inconsistent when large numbers of products must be processed.
 
-This project explores how Computer Vision can be used to build an automated inspection pipeline capable of answering four fundamental questions:
+This project investigates how multiple Computer Vision techniques can be integrated into a complete automated inspection system.
+
+The system is designed to answer four main questions:
 
 - **Where is each bottle?** — Object Detection
 - **Which bottle is which across video frames?** — Multi-Object Tracking
-- **Does the bottle contain a visual anomaly?** — Anomaly Detection
+- **Does a bottle contain a visual anomaly?** — Anomaly Detection
 - **How many normal and defective bottles passed through the system?** — Counting & Analytics
 
-The goal is not only to train an AI model, but to integrate multiple Computer Vision components into a complete video-processing system.
+The focus of the project is not a single AI model, but the engineering and integration of multiple vision components into one end-to-end video-processing pipeline.
 
 ---
 
 ## 🧠 System Architecture
 
-The planned pipeline is:
+The planned system pipeline is:
 
 ```text
 Video / Camera Stream
@@ -54,9 +56,9 @@ Video / Camera Stream
 │     PatchCore       │
 └──────────┬──────────┘
            │
-           ├──── Normal
+           ├── Normal
            │
-           └──── Defective
+           └── Defective
                     │
                     ▼
              Defect Localization
@@ -75,7 +77,7 @@ Video / Camera Stream
 └─────────────────────┘
 ```
 
-Each component has a specific responsibility rather than relying on a single model to solve the entire problem.
+Each component has a dedicated responsibility instead of relying on a single model to solve the entire problem.
 
 ---
 
@@ -83,23 +85,39 @@ Each component has a specific responsibility rather than relying on a single mod
 
 ### 1. Bottle Detection
 
-A YOLO-based object detector identifies bottles in each video frame and returns their bounding boxes and detection confidence scores.
+Bottle detection is currently implemented using a pretrained YOLO model.
+
+The detector receives an image or video frame and produces:
+
+- Bottle bounding boxes
+- Detection confidence scores
+- Object class information
 
 The detector is responsible only for locating bottles. It does **not** determine whether a bottle is normal or defective.
 
+A pretrained COCO model is currently being used as the project baseline.
+
+Initial visual experiments were performed under different image conditions to understand the behavior and limitations of the baseline detector.
+
+The pretrained model will remain the initial detector while the final operating environment is being defined.
+
+Domain-specific fine-tuning will be considered later if evaluation in the target environment shows that the baseline detector is insufficient.
+
 ### 2. Multi-Object Tracking
 
-ByteTrack associates detections between consecutive frames and assigns a persistent ID to each bottle.
+The planned tracking stage will use ByteTrack to associate bottle detections between consecutive video frames.
 
-This allows the system to understand that the same bottle appearing across multiple frames is still the same physical object.
+Each bottle will receive a persistent Track ID, allowing the system to recognize the same physical bottle as it moves through the scene.
 
 ### 3. Visual Anomaly Detection
 
-Detected bottles entering the inspection region are extracted and analyzed using PatchCore.
+Bottles entering the inspection region will be extracted from the video frame and analyzed using an anomaly-detection model.
 
-Instead of requiring every possible defect type to be explicitly defined beforehand, the anomaly-detection model learns the visual appearance of normal bottles and identifies deviations from normal appearance.
+PatchCore is currently planned as the primary anomaly-detection approach.
 
-The inspection stage is designed to produce:
+Rather than requiring every possible defect type to be explicitly defined, the anomaly detector will learn the visual characteristics of normal bottles and identify deviations from normal appearance.
+
+The inspection stage is intended to produce:
 
 - Anomaly score
 - Normal / Defective decision
@@ -108,13 +126,13 @@ The inspection stage is designed to produce:
 
 ### 4. Bottle Counting
 
-A directional virtual line is used to count each tracked bottle once.
+A directional virtual line will be used to count bottles as they move through the system.
 
-Because counting is associated with persistent Track IDs, the system avoids repeatedly counting the same bottle across multiple video frames.
+Counting will be associated with persistent Track IDs so that each bottle is counted only once.
 
 ### 5. Production Analytics
 
-The final system is intended to display real-time statistics such as:
+The completed pipeline is intended to generate real-time statistics including:
 
 - Total bottles processed
 - Normal bottles
@@ -124,31 +142,52 @@ The final system is intended to display real-time statistics such as:
 
 ---
 
+## 🧪 Current Detection Baseline
+
+The first implemented component is bottle detection using a pretrained YOLO model.
+
+The baseline has been tested visually using multiple static-image scenarios, including:
+
+- Multiple clearly visible bottles
+- A single isolated bottle
+- Transparent bottles under difficult lighting
+- Small and densely distributed bottles
+
+These experiments are used as qualitative baseline tests rather than formal model evaluation.
+
+The tests showed that detector performance depends strongly on object size, visibility, lighting, and scene characteristics.
+
+For this reason, model fine-tuning will be postponed until the target video environment is clearly defined.
+
+This allows future training to be focused on the actual deployment domain rather than on arbitrary bottle images.
+
+---
+
 ## 🗂️ Project Structure
 
 ```text
 visual-quality-inspection/
 │
-├── data/              # Local datasets and input media
+├── data/              # Local datasets, images, and videos
 ├── models/            # Model weights and exported models
 ├── outputs/           # Generated videos, images, and reports
-├── src/               # Main source code
-├── tests/             # Tests
+├── src/               # Main project source code
+├── tests/             # Project tests
 │
 ├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 
-The project structure will evolve as individual components are implemented.
+The structure will evolve as new system components are implemented.
 
 ---
 
 ## 🛠️ Technology Stack
 
-The project is planned around:
+Current and planned technologies include:
 
-- **Python**
+- **Python 3.12**
 - **PyTorch**
 - **Ultralytics YOLO**
 - **OpenCV**
@@ -156,8 +195,9 @@ The project is planned around:
 - **PatchCore**
 - **MVTec AD**
 - **NumPy**
+- **Git**
 
-Additional dependencies may be introduced as the system evolves.
+The project is developed primarily on a CPU-based development environment, while GPU-intensive model training can be performed separately when required.
 
 ---
 
@@ -165,35 +205,45 @@ Additional dependencies may be introduced as the system evolves.
 
 | Phase | Component | Status |
 |------:|-----------|:------:|
-| 0 | Project setup & environment | 🟢 |
-| 1 | Bottle detection | ⏳ |
-| 2 | Video inference | ⏳ |
-| 3 | Multi-object tracking | ⏳ |
-| 4 | Line-crossing & counting | ⏳ |
-| 5 | Bottle anomaly detection | ⏳ |
-| 6 | Defect localization | ⏳ |
-| 7 | Full pipeline integration | ⏳ |
-| 8 | Performance evaluation | ⏳ |
-| 9 | System optimization | ⏳ |
-| 10 | Final demo & documentation | ⏳ |
+| 0 | Project setup & environment | ✅ Completed |
+| 1 | Static-image bottle detection baseline | ✅ Completed |
+| 2 | Video bottle detection | 🚧 Next |
+| 3 | Multi-object tracking | ⏳ Planned |
+| 4 | Line-crossing & counting | ⏳ Planned |
+| 5 | Bottle anomaly detection | ⏳ Planned |
+| 6 | Defect localization | ⏳ Planned |
+| 7 | Full pipeline integration | ⏳ Planned |
+| 8 | Performance evaluation | ⏳ Planned |
+| 9 | System optimization | ⏳ Planned |
+| 10 | Final demo & documentation | ⏳ Planned |
 
 ---
 
 ## 📦 Dataset Strategy
 
-Different stages of the system require different types of visual information.
+Different components of the system require different forms of visual data.
 
-For object detection, the system requires images containing bottles with object-level localization information.
+### Object Detection
 
-For anomaly detection, the project will use industrial visual inspection data, with **MVTec AD Bottle** serving as the primary anomaly-detection benchmark.
+The current detector uses pretrained YOLO weights as a baseline.
 
-Dataset preparation and preprocessing procedures will be documented as the corresponding stages are implemented.
+A bottle-specific detection dataset will only be introduced if testing in the final target environment demonstrates a need for domain-specific fine-tuning.
+
+### Anomaly Detection
+
+The anomaly-detection stage is planned around industrial visual-inspection data.
+
+The Bottle category from the MVTec Anomaly Detection dataset is currently planned as the initial benchmark for developing and evaluating the anomaly-detection component.
+
+Additional domain-specific data may be introduced later depending on the final inspection environment.
 
 ---
 
 ## 🎬 Expected Final Output
 
-The final application is intended to process a video or camera stream and produce an annotated output similar to:
+The final system is intended to process a video or camera stream and produce an annotated result containing bottle identities, inspection results, and production statistics.
+
+Conceptually:
 
 ```text
 ┌─────────────────────────────────────────────┐
@@ -204,7 +254,7 @@ The final application is intended to process a video or camera stream and produc
 │   │  GOOD  │                │ DEFECT │       │
 │   └────────┘                └────────┘       │
 │                                             │
-│  ─────────── Inspection / Count Line ─────  │
+│  ───────── Inspection / Count Line ───────  │
 │                                             │
 │  Total: 42                                  │
 │  Good: 37                                   │
@@ -215,41 +265,51 @@ The final application is intended to process a video or camera stream and produc
 └─────────────────────────────────────────────┘
 ```
 
-The final output will combine AI inference with tracking, temporal logic, visualization, and production statistics.
+The values above illustrate the intended interface and are not reported experimental results.
 
 ---
 
-## 📈 Evaluation
+## 📈 Evaluation Strategy
 
-The completed system will be evaluated at multiple levels rather than relying on a single accuracy value.
+The completed system will be evaluated at multiple levels.
 
 Planned evaluation includes:
 
 - Object detection performance
-- Anomaly detection performance
-- Defect localization quality
 - Tracking stability
 - Counting accuracy
+- Anomaly-detection performance
+- Defect-localization quality
 - End-to-end processing speed
 
-Detailed metrics will be added as each component is implemented and experimentally evaluated.
+Formal metrics and experimental results will be documented only after the corresponding components have been implemented and evaluated.
 
 ---
 
 ## 🚧 Current Development Status
 
-The repository is currently in the initial development stage.
+Project initialization and the first bottle-detection baseline have been completed.
 
-The project environment and repository structure have been prepared, and development is beginning with the **Bottle Detection** component.
+The current system can:
 
-Results, model evaluations, demo media, and implementation details will be added progressively as the system is built.
+- Load a pretrained YOLO model
+- Perform inference on static images
+- Restrict detections to bottles
+- Extract bounding-box, confidence, and class information
+- Visualize bottle detections
+
+The next development milestone is **video-based bottle detection**.
+
+This stage will establish the temporal video-processing pipeline required before multi-object tracking is introduced.
 
 ---
 
 ## 📌 Project Scope
 
-This project is designed as a practical Computer Vision engineering project and portfolio demonstration.
+This project is designed as a practical Computer Vision engineering and portfolio project.
 
-It focuses on integrating modern detection, tracking, anomaly-detection, and video-processing techniques into a coherent end-to-end system.
+Its primary objective is to demonstrate the integration of object detection, tracking, anomaly detection, video processing, counting logic, and system-level evaluation.
 
-The system should be considered a **proof-of-concept visual inspection platform**, not a production-certified industrial quality-control system.
+The final implementation should be considered a **proof-of-concept visual inspection system**, not a production-certified industrial quality-control solution.
+
+---
