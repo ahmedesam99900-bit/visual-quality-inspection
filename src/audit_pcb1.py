@@ -29,7 +29,7 @@ for row in rows:
 
         sizes[image.size] += 1
 
-        # البصمة تعتمد على الأبعاد والبكسلات، مش اسم الملف.
+        # Hash image dimensions and decoded pixels, not the filename.
         digest = hashlib.sha256()
         digest.update(str(image.size).encode("ascii"))
         digest.update(image.tobytes())

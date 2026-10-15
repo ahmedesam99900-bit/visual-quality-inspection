@@ -14,13 +14,13 @@ with (DATA_ROOT / "pcb1" / "image_anno.csv").open(
 ) as file:
     rows = list(csv.DictReader(file))
 
-# العينات الموجودة في الصورة المجمعة التي راجعناها.
+# Reserve samples inspected in the contact sheet for development.
 with (ROOT / "outputs" / "pcb1_preview_samples.csv").open(
     encoding="utf-8-sig", newline=""
 ) as file:
     reviewed = {row["image"] for row in csv.DictReader(file)}
 
-# عينات إضافية عاينّاها قبل إنشاء الصورة المجمعة.
+# Include additional samples inspected before generating the contact sheet.
 reviewed.update(
     f"pcb1/Data/Images/Normal/{name}.JPG"
     for name in ["0000", "0001", "0500", "1003"]
@@ -31,6 +31,7 @@ reviewed.update(
 )
 
 image_paths = {row["image"] for row in rows}
+
 if len(image_paths) != len(rows):
     raise ValueError("CSV contains repeated image paths")
 
@@ -51,7 +52,7 @@ if (len(normal), len(anomaly)) != (1004, 100):
 
 
 def reserve_reviewed(group):
-    """نفصل العينات المعاينة، ونخلط الباقي بترتيب قابل للتكرار."""
+    """Reserve reviewed samples and shuffle the rest reproducibly."""
     known = [row for row in group if row["image"] in reviewed]
     remaining = [row for row in group if row["image"] not in reviewed]
     random.Random(SEED).shuffle(remaining)
@@ -61,7 +62,7 @@ def reserve_reviewed(group):
 known_normal, other_normal = reserve_reviewed(normal)
 known_anomaly, other_anomaly = reserve_reviewed(anomaly)
 
-# السليم المعاين يدخل التدريب، والمعيب المعاين يدخل Validation.
+# Assign reviewed normals to training and reviewed anomalies to validation.
 train_slots = 804 - len(known_normal)
 val_anomaly_slots = 40 - len(known_anomaly)
 
@@ -82,6 +83,7 @@ groups = {
 }
 
 assigned = [row["image"] for group in groups.values() for row in group]
+
 if len(assigned) != len(rows) or len(set(assigned)) != len(rows):
     raise ValueError("Split has missing or repeated assignments")
 
@@ -90,7 +92,7 @@ if reviewed.intersection(row["image"] for row in groups["test"]):
 
 OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-# وضع x يمنع الكتابة فوق تقسيم موجود بالخطأ.
+# Exclusive creation prevents overwriting an existing split.
 with OUTPUT_PATH.open("x", encoding="utf-8", newline="") as file:
     writer = csv.DictWriter(
         file, fieldnames=["image", "label", "mask", "split"]

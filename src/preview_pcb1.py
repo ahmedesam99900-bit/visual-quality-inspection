@@ -9,7 +9,7 @@ DATA_ROOT = ROOT / "data" / "visa"
 OUTPUT_DIR = ROOT / "outputs"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-# مسارات الصور في CSV تبدأ بـ pcb1، لذلك نربطها بـ DATA_ROOT.
+# CSV image paths include pcb1 and are relative to DATA_ROOT.
 with (DATA_ROOT / "pcb1" / "image_anno.csv").open(
     encoding="utf-8-sig", newline=""
 ) as file:
@@ -20,7 +20,7 @@ anomaly = [row for row in rows if row["label"] != "normal"]
 
 
 def select_spread_samples(group, count=6):
-    """عينات موزعة على القائمة للمعاينة، وليست تقسيمًا للتدريب."""
+    """Select evenly spaced samples for inspection, not dataset splitting."""
     return [
         group[index * (len(group) - 1) // (count - 1)]
         for index in range(count)
@@ -29,7 +29,7 @@ def select_spread_samples(group, count=6):
 
 selected = select_spread_samples(normal) + select_spread_samples(anomaly)
 
-# أول صفين للسليم، وآخر صفين للمعيب.
+# Display normal samples first, followed by anomalous samples.
 cell_width, cell_height = 400, 350
 sheet = Image.new("RGB", (cell_width * 3, cell_height * 4), "white")
 draw = ImageDraw.Draw(sheet)
@@ -46,7 +46,10 @@ for index, row in enumerate(selected):
     x = (index % 3) * cell_width
     y = (index // 3) * cell_height
 
-    sheet.paste(thumbnail, (x + (cell_width - thumbnail.width) // 2, y + 40))
+    sheet.paste(
+        thumbnail,
+        (x + (cell_width - thumbnail.width) // 2, y + 40),
+    )
     draw.text(
         (x + 10, y + 10),
         f"{image_path.name} | {row['label']}",
@@ -56,7 +59,7 @@ for index, row in enumerate(selected):
 preview_path = OUTPUT_DIR / "pcb1_preview.jpg"
 sheet.save(preview_path, quality=95)
 
-# نحتفظ بقائمة العينات التي عاينّاها لاستبعادها من الاختبار النهائي.
+# Record inspected samples so they can be excluded from the final test set.
 with (OUTPUT_DIR / "pcb1_preview_samples.csv").open(
     "w", encoding="utf-8", newline=""
 ) as file:
