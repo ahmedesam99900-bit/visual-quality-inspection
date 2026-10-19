@@ -1,0 +1,10 @@
+# Dataset root on the development laptop.
+path: C:/AI-Projects/visual-quality-inspection/data/yolo_pcb1_pilot
+
+# Image directories relative to the dataset root.
+train: images/train
+val: images/val
+
+# Class IDs must match the annotation files.
+names:
+  0: hc_sr04

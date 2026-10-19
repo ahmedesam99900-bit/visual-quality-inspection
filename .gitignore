@@ -22,8 +22,24 @@ __pycache__/
 # Generated outputs
 outputs/
 
-# Local datasets
-data/
+# Ignore local datasets except selected YOLO metadata and annotations.
+/data/*
+!/data/yolo_pcb1_pilot/
+
+/data/yolo_pcb1_pilot/*
+!/data/yolo_pcb1_pilot/data.yaml
+!/data/yolo_pcb1_pilot/selection.csv
+!/data/yolo_pcb1_pilot/labels/
+
+/data/yolo_pcb1_pilot/labels/*
+!/data/yolo_pcb1_pilot/labels/train/
+!/data/yolo_pcb1_pilot/labels/val/
+
+/data/yolo_pcb1_pilot/labels/train/*
+!/data/yolo_pcb1_pilot/labels/train/*.txt
+
+/data/yolo_pcb1_pilot/labels/val/*
+!/data/yolo_pcb1_pilot/labels/val/*.txt
 
 # OS files
 .DS_Store
