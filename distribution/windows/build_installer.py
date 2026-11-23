@@ -6,6 +6,7 @@ import shutil
 import struct
 import subprocess
 import tempfile
+from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
 from PIL import Image, ImageDraw
@@ -101,12 +102,25 @@ def build(cache, release):
         with ZipFile(archive) as files:
             if failure := files.testzip():
                 raise ValueError(f"The installer archive is damaged: {failure}")
-        with bootstrap.open("ab") as target, archive.open("rb") as source:
-            offset = target.tell()
-            shutil.copyfileobj(source, target, length=1024**2)
-            target.write(struct.pack("<Q8s", offset, b"VQIZIP01"))
         result = release / "Visual-Inspection-Studio-Setup.exe"
-        bootstrap.replace(result)
+        # Creating the installer here gives it the release directory's ACL.
+        # A rename from TemporaryDirectory can retain a private Windows ACL.
+        pending = release / f".setup-{uuid4().hex}.tmp"
+        try:
+            with pending.open("xb") as target:
+                with bootstrap.open("rb") as header:
+                    shutil.copyfileobj(header, target)
+                offset = target.tell()
+                with archive.open("rb") as content:
+                    shutil.copyfileobj(content, target, length=1024**2)
+                target.write(struct.pack("<Q8s", offset, b"VQIZIP01"))
+            try:
+                pending.replace(result)
+            except PermissionError:
+                result = release / "Visual-Inspection-Studio-Setup-Rebuilt.exe"
+                pending.replace(result)
+        finally:
+            pending.unlink(missing_ok=True)
         print(f"{result} ({result.stat().st_size / (1024**2):.0f} MiB)", flush=True)
 
 
