@@ -2,9 +2,11 @@
 
 A local English web application for inspecting PCB1 and training versioned models for other visual inspection products.
 
-## Share the Windows application
+## Install and share the Windows desktop application
 
-The Windows x64 portable build includes its Python runtime, CPU training dependencies, and a pretrained PCB1 starter model for consistently framed crops. Extract the whole build and run `Open-Visual-Inspection.cmd`. The app saves the user's workspace in their local application data folder. Run the release's `Connect-Modal.cmd` to connect the user's GPU workspace. The embedded starter is enabled through the app's `--starter` option. Its image and benchmark data come from VisA PCB1.
+Distribute `outputs/windows-desktop/release/Visual-Inspection-Studio-Setup.exe`. Open the installer and select **Install**. Launch **Visual Inspection Studio** from the Windows Start menu. The application runs in its own window and includes Python and a pretrained PCB1 starter model for consistently framed crops. It stores products, images and trained models in the current user's local application data folder.
+
+For Modal training, use **Help > Connect Modal GPU** inside the desktop application. The setup and build files are in [distribution/windows](distribution/windows/README.md).
 
 ## Run on Windows
 
