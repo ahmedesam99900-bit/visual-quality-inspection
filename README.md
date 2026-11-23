@@ -2,6 +2,10 @@
 
 A local English web application for inspecting PCB1 and training versioned models for other visual inspection products.
 
+## Share the Windows application
+
+The Windows x64 portable build includes its Python runtime, CPU training dependencies, and a pretrained PCB1 starter model for consistently framed crops. Extract the whole build and run `Open-Visual-Inspection.cmd`. The app saves the user's workspace in their local application data folder. Run the release's `Connect-Modal.cmd` to connect the user's GPU workspace. The embedded starter is enabled through the app's `--starter` option. Its image and benchmark data come from VisA PCB1.
+
 ## Run on Windows
 
 In the existing project, run `deployment\start_app.cmd`. It uses the project's Python 3.12 environment and opens the local application. Start with **Load sample image** and **Run inspection** in the PCB1 view.

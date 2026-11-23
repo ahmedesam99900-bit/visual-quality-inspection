@@ -7,6 +7,7 @@ from hashlib import sha256
 from io import BytesIO
 import json
 from pathlib import Path
+import shutil
 import sqlite3
 from threading import Event, Thread
 from uuid import uuid4
@@ -15,6 +16,8 @@ from inspect_pcb1 import VERSION, open_image
 from PIL import Image
 
 GROUPS = ("train_normal", "val_normal", "val_anomaly", "test_normal", "test_anomaly")
+STARTER_ID = "starter-pcb1"
+STARTER_VERSION = "starter-pcb1-v1"
 BUILTIN = {
     "id": "pcb1",
     "name": "HC-SR04 / PCB1",
@@ -31,9 +34,10 @@ def timestamp():
 
 
 class Workspace:
-    def __init__(self, root, pcb_available):
+    def __init__(self, root, pcb_available, starter=None):
         self.root = root
         self.pcb_available = pcb_available
+        self.starter = starter
         self.root.mkdir(parents=True, exist_ok=True)
         self._wake = Event()
         with self.db() as db:
@@ -62,6 +66,27 @@ class Workspace:
                     name TEXT NOT NULL, created_at TEXT NOT NULL, metrics TEXT NOT NULL
                 );
             """)
+        if self.starter is not None:
+            self._install_starter()
+
+    def _install_starter(self):
+        with self.db() as db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("SELECT 1 FROM products WHERE id = ?", (STARTER_ID,)).fetchone():
+                return
+            metrics = json.loads((self.starter / "metrics.json").read_text(encoding="utf-8"))
+            folder = self.root / "models"
+            folder.mkdir(exist_ok=True)
+            model = folder / (STARTER_VERSION + ".npz")
+            pending = folder / (STARTER_VERSION + ".tmp")
+            shutil.copyfile(self.starter / "model.npz", pending)
+            pending.replace(model)
+            now = timestamp()
+            db.execute("INSERT INTO products VALUES (?, ?, ?, ?)", (STARTER_ID, "PCB1 · cropped starter", STARTER_VERSION, now))
+            db.execute(
+                "INSERT INTO versions VALUES (?, ?, ?, ?, ?)",
+                (STARTER_VERSION, STARTER_ID, "Starter v1", now, json.dumps(metrics, allow_nan=False)),
+            )
 
     @contextmanager
     def db(self):
@@ -102,6 +127,7 @@ class Workspace:
     def describe(self):
         builtin = deepcopy(BUILTIN)
         builtin["available"] = self.pcb_available
+        builtin["sample_available"] = self.pcb_available
         if not self.pcb_available:
             builtin["active_version"] = None
             builtin["versions"] = []
@@ -112,6 +138,7 @@ class Workspace:
                 key = (row["id"],)
                 product["builtin"] = False
                 product["available"] = True
+                product["sample_available"] = product["id"] == STARTER_ID and self.starter is not None
                 product["dataset"] = dict.fromkeys(GROUPS, 0)
                 product["dataset"].update(dict(db.execute(
                     "SELECT group_name, COUNT(*) FROM images WHERE product_id = ? GROUP BY group_name", key

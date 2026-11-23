@@ -15,7 +15,7 @@ from threading import Lock
 from urllib.parse import parse_qs, urlsplit
 import webbrowser
 
-from workspace import Workspace
+from workspace import STARTER_ID, Workspace
 
 from inspect_pcb1 import PATCHCORE_WEIGHTS, YOLO_WEIGHTS, Pcb1Inspector, VERSION
 
@@ -82,13 +82,22 @@ class InspectionHandler(BaseHTTPRequestHandler):
         if not self.check_host():
             return
 
-        path = urlsplit(self.path).path
+        request = urlsplit(self.path)
+        path = request.path
         if path == "/api/workspace":
             self.send_json(HTTPStatus.OK, self.workspace.describe())
             return
 
         if path == "/sample.jpg":
-            path, kind = self.inspector.project_root / SAMPLE, "image/jpeg"
+            product = parse_qs(request.query).get("product_id", ["pcb1"])[0]
+            if product == STARTER_ID and self.workspace.starter is not None:
+                path = self.workspace.starter / "sample.jpg"
+            elif product == "pcb1":
+                path = self.inspector.project_root / SAMPLE
+            else:
+                self.send_json(HTTPStatus.NOT_FOUND, {"error": "This product has no sample image."})
+                return
+            kind = "image/jpeg"
         elif path in ASSETS:
             asset, kind = ASSETS[path]
             path = APP_DIR / "web" / asset
@@ -217,6 +226,7 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--open", action="store_true", help="Open the page in the default browser.")
     parser.add_argument("--workspace", type=Path, help="Directory for products, datasets and training jobs.")
+    parser.add_argument("--starter", type=Path, help="Install the included sample product into a new workspace.")
     args = parser.parse_args()
     root = args.project_root.resolve()
     pcb_available = all((root / path).is_file() for path in (
@@ -231,7 +241,7 @@ def main():
             os.environ[variable] = str(path)
     os.environ.setdefault("YOLO_AUTOINSTALL", "false")
 
-    workspace = Workspace(data_root, pcb_available)
+    workspace = Workspace(data_root, pcb_available, args.starter)
     handler = partial(InspectionHandler, inspector=Pcb1Inspector(root), workspace=workspace, lock=Lock())
     try:
         with ThreadingHTTPServer(("127.0.0.1", args.port), handler) as server:
