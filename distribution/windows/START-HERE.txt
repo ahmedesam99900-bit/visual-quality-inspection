@@ -1,0 +1,21 @@
+Visual Inspection Studio for Windows x64
+
+Open Visual Inspection Studio from the Windows Start menu. Select Load sample
+image and Run inspection to try the included PCB1 model. For this model, use
+consistently framed crops of the HC-SR04 board.
+
+Use Products & datasets to add a product and upload labeled images. Train a
+new version in Training & models, review its metrics, and activate it before
+running inspection.
+
+For cloud training, choose Help > Connect Modal GPU and sign in to your own
+Modal workspace. Reopen the studio after connecting.
+
+Workspaces are stored in %LOCALAPPDATA%\VisualInspectionStudio\workspace.
+The diagnostic log is available through Help > Open diagnostic log.
+
+The built-in sample and benchmark data are from VisA PCB1 by Yang Zou,
+Jongheon Jeong, Latha Pemula, Dongqing Zhang and Onkar Dabeer, CC BY 4.0.
+Dataset: https://github.com/amazon-science/spot-diff
+License: https://creativecommons.org/licenses/by/4.0/
+Check representative photos from your camera before production use.
