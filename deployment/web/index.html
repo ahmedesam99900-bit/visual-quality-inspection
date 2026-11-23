@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visual Inspection Studio</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#inspection" aria-label="Visual Inspection Studio home">
+      <span class="brand-mark" aria-hidden="true"><i></i></span>
+      <span>Visual Inspection<span class="brand-sub">STUDIO</span></span>
+    </a>
+    <nav aria-label="Workspace">
+      <a href="#inspection" class="nav-link" data-page="inspection" aria-current="page"><span class="nav-icon scan" aria-hidden="true"></span> Inspection</a>
+      <a href="#products" class="nav-link" data-page="products"><span class="nav-icon layers" aria-hidden="true"></span> Products &amp; datasets</a>
+      <a href="#training" class="nav-link" data-page="training"><span class="nav-icon activity" aria-hidden="true"></span> Training &amp; models</a>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="service-dot" aria-hidden="true"></span>
+      <div><strong>Local workspace</strong><span id="service-label">Connecting to workspace…</span></div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <p id="workspace-error" class="notice error" role="alert" hidden></p>
+
+    <div class="page" id="page-inspection">
+      <header class="hero">
+        <div class="hero-copy">
+          <h1>Visual inspection</h1>
+          <p>Inspect a product image, locate unusual regions, and review the result against the original.</p>
+        </div>
+        <div class="hero-board" aria-hidden="true"></div>
+      </header>
+
+      <div class="model-bar">
+        <div class="field"><label for="inspection-product">Product</label><select id="inspection-product"><option value="pcb1">PCB1 · HC-SR04</option></select></div>
+        <div class="field"><label for="inspection-version">Model version</label><select id="inspection-version"><option value="">Active version</option></select></div>
+        <p id="inspection-model-note" class="model-note">PCB1 locates the board before evaluating the crop.</p>
+      </div>
+
+      <div class="inspection-grid">
+        <section class="card input-card" aria-labelledby="input-heading">
+          <div class="card-heading"><h2 id="input-heading">Image input</h2><p>Choose one clear photo of the product.</p></div>
+          <label class="dropzone" id="dropzone">
+            <input id="file" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" aria-label="Choose an image">
+            <img id="input-preview" alt="Preview of the selected image" hidden>
+            <span id="upload-content" class="upload-content">
+              <span class="upload-icon" aria-hidden="true"></span>
+              <strong>Choose an image</strong>
+              <span>or drag and drop it here</span>
+              <small>JPG or PNG · Up to 20 MB</small>
+            </span>
+            <span class="change-photo" id="change-photo" hidden>Replace image</span>
+          </label>
+          <p id="filename" class="filename" dir="auto" hidden></p>
+          <button id="inspect" class="button primary" type="button" disabled>Run inspection</button>
+          <button id="sample" class="button secondary" type="button">Load sample image</button>
+          <p id="input-error" class="notice error" role="alert" hidden></p>
+        </section>
+
+        <section class="card result-card" aria-labelledby="result-heading" id="result-panel">
+          <div class="card-heading"><h2 id="result-heading">Inspection result</h2><p>Review the decision, anomaly score, and heatmap.</p></div>
+          <div id="empty" class="empty">
+            <div class="empty-mark" aria-hidden="true"><i></i><span></span></div>
+            <strong>Awaiting inspection</strong>
+            <p>Load an image and run an inspection to see the result here.</p>
+          </div>
+          <div id="loading" class="empty" role="status" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <strong>Inspecting the image…</strong>
+            <p>The first inspection also loads the model.</p>
+          </div>
+          <div id="result" hidden>
+            <div id="verdict" class="verdict" role="status">
+              <div><strong id="decision"></strong><p id="detail" hidden></p></div>
+              <div id="score-group" class="score" hidden><span>Anomaly score · 0–1</span><strong id="score"></strong></div>
+            </div>
+            <div id="visuals" class="visuals" hidden>
+              <figure class="visual">
+                <figcaption class="visual-head"><label for="view">Image view</label>
+                  <select id="view">
+                    <option value="crop">Product crop</option>
+                    <option value="detected">Full image</option>
+                    <option value="mask">Defect mask</option>
+                  </select>
+                </figcaption>
+                <img id="visual-image" alt="Product crop">
+              </figure>
+              <figure class="visual">
+                <figcaption class="visual-head"><h3>Anomaly heatmap</h3></figcaption>
+                <img id="heatmap" alt="Anomaly intensity over the product image">
+                <div class="legend" aria-label="Normalized anomaly score, from zero to one"><div class="ramp"></div><div class="scale"><span>0 · Low</span><span>1 · High</span></div></div>
+              </figure>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="page" id="page-products" hidden>
+      <header class="page-heading">
+        <h1>Products &amp; datasets</h1>
+        <p>Organize labeled photos for training, validation, and evaluation.</p>
+      </header>
+      <div class="management-grid">
+        <section class="card" aria-labelledby="new-heading">
+          <div class="card-heading"><h2 id="new-heading">Add a product</h2><p>Keep photos and models for each product in its own workspace.</p></div>
+          <form id="create-product" class="form">
+            <div class="field"><label for="product-name">Product name</label><input id="product-name" type="text" maxlength="80" placeholder="e.g. Connector housing" required></div>
+            <button class="button primary" type="submit">Create product</button>
+          </form>
+          <p class="notice" id="product-message" role="status" hidden></p>
+        </section>
+        <section class="card" aria-labelledby="dataset-heading">
+          <div class="card-heading"><h2 id="dataset-heading">Dataset</h2><p>Use images captured with consistent framing and lighting.</p></div>
+          <div class="field"><label for="dataset-product">Product</label><select id="dataset-product"></select></div>
+          <div id="dataset-content" hidden>
+            <dl id="dataset-counts" class="dataset-counts"></dl>
+            <form id="upload-dataset" class="form dataset-form">
+              <div class="field"><label for="dataset-group">Image group</label><select id="dataset-group">
+                <option value="train_normal">Training · Normal</option>
+                <option value="val_normal">Validation · Normal</option>
+                <option value="val_anomaly">Validation · Defective</option>
+                <option value="test_normal">Test · Normal</option>
+                <option value="test_anomaly">Test · Defective</option>
+              </select></div>
+              <div class="field"><label for="dataset-images">Images</label><input id="dataset-images" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple required></div>
+              <button class="button primary" type="submit">Upload images</button>
+            </form>
+            <p class="notice" id="dataset-message" role="status" hidden></p>
+          </div>
+          <p class="notice" id="dataset-empty">Create or select a product to add images.</p>
+        </section>
+      </div>
+    </div>
+
+    <div class="page" id="page-training" hidden>
+      <header class="page-heading">
+        <h1>Training &amp; models</h1>
+        <p>Train a product model, compare its evaluation, and activate a version for inspection.</p>
+      </header>
+      <div class="management-grid">
+        <section class="card" aria-labelledby="run-heading">
+          <div class="card-heading"><h2 id="run-heading">New training run</h2></div>
+          <form id="start-training" class="form">
+            <div class="field"><label for="training-product">Product</label><select id="training-product"></select></div>
+            <p class="help">Start with at least 3 normal training images, 1 normal validation image, and 1 defective validation image.</p>
+            <div class="field"><label for="training-provider">Run on</label><select id="training-provider"><option value="modal">Modal cloud GPU</option><option value="local">Local CPU</option></select></div>
+            <p class="help" id="training-provider-note"></p>
+            <button id="training-submit" class="button primary" type="submit">Start training</button>
+          </form>
+          <p class="notice" id="training-message" role="status" hidden></p>
+        </section>
+        <div class="training-detail">
+          <section class="card" aria-labelledby="jobs-heading">
+            <div class="card-heading"><h2 id="jobs-heading">Training runs</h2></div>
+            <div id="job-list" class="rows"><p class="help">Choose a product to see its runs.</p></div>
+          </section>
+          <section class="card" aria-labelledby="versions-heading">
+            <div class="card-heading"><h2 id="versions-heading">Model versions</h2></div>
+            <div id="version-list" class="rows"><p class="help">Choose a product to see its model versions.</p></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
