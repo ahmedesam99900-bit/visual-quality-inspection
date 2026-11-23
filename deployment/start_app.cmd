@@ -4,7 +4,8 @@ chcp 65001 >nul
 for %%I in ("%~dp0..") do set "PCB1_PROJECT=%%~fI"
 set "PCB1_PYTHON=%PCB1_PROJECT%\.venv\Scripts\python.exe"
 if not exist "%PCB1_PYTHON%" (
-    echo Python was not found in the project's .venv.
+    echo Python was not found at "%PCB1_PYTHON%".
+    echo Run this launcher from the deployment folder inside the original project.
     pause
     exit /b 1
 )

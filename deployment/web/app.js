@@ -91,7 +91,8 @@ function setOptions(select, options, fallback = "") {
 }
 
 function renderSelectors() {
-  const products = workspace.products.map(({ id, name }) => [id, name]);
+  const available = workspace.products.filter((product) => product.available !== false);
+  const products = (available.length ? available : workspace.products).map(({ id, name }) => [id, name]);
   const custom = workspace.products.filter((product) => !isBuiltin(product));
   const managed = custom.map(({ id, name }) => [id, name]);
 
@@ -117,7 +118,7 @@ function syncInspectionControls() {
   const product = selectedProduct("inspection-product");
   const available = hasInspectionModel(product);
   inspect.disabled = busy || !chosenFile || !available;
-  sample.hidden = !isBuiltin(product);
+  sample.hidden = !product?.sample_available;
   sample.disabled = busy || product?.available === false;
   input.disabled = busy;
   $("inspection-product").disabled = busy;
@@ -413,9 +414,12 @@ sample.addEventListener("click", async () => {
   syncInspectionControls();
   showNotice("input-error");
   try {
-    const response = await fetch("/sample.jpg");
+    const product = selectedProduct("inspection-product");
+    const query = new URLSearchParams({ product_id: product.id });
+    const response = await fetch("/sample.jpg?" + query);
     if (!response.ok) throw new Error("Sample image unavailable. Choose a local image instead.");
-    const file = new File([await response.blob()], "PCB1-041.jpg", { type: "image/jpeg" });
+    const filename = isBuiltin(product) ? "PCB1-041.jpg" : "PCB1-starter-sample.jpg";
+    const file = new File([await response.blob()], filename, { type: "image/jpeg" });
     chooseImage(file);
   } catch (error) {
     showNotice("input-error", errorText(error), true);

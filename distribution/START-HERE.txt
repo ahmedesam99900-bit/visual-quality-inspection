@@ -1,0 +1,17 @@
+Visual Inspection Studio for Windows x64
+
+1. Extract the whole ZIP into a folder.
+2. Double-click Open-Visual-Inspection.cmd. The app opens in your browser.
+3. Click Load sample image, then Run inspection. Try a complete crop of an HC-SR04 board in the same framing.
+4. To inspect another product, create it in Products & datasets and add labeled training and validation images. Train a new version, activate it, then inspect that product.
+5. To use cloud training, run Connect-Modal.cmd and sign in to your Modal workspace with GPU access. Reopen the app and select Modal GPU.
+
+The Windows package includes Python, local training dependencies and a pretrained cropped-PCB1 example. Its starter model expects consistently framed crops. The original project also supports the separate YOLO/PatchCore pipeline for full-frame PCB1 photos.
+
+Product datasets, jobs, and models are stored locally under %LOCALAPPDATA%\VisualInspectionStudio\workspace. Close the application window to stop the local server.
+
+A copy of a VisA PCB1 evaluation crop is included as the example. PCB1 photos are credited to Yang Zou, Jongheon Jeong, Latha Pemula, Dongqing Zhang, and Onkar Dabeer and distributed under CC BY 4.0.
+Dataset: https://github.com/amazon-science/spot-diff
+License: https://creativecommons.org/licenses/by/4.0/
+
+The model metrics describe the VisA benchmark split. Validate the model on representative camera images before making real production decisions. See runtime\LICENSE.txt and the installed package license files for runtime notices.
